@@ -3,7 +3,7 @@ import pandas as pd
 import re
 
 
-file_path = r"C:\Users\b_gur\OneDrive\Documentos\order-processing-py\pdfs\pdfexample.pdf"
+file_path = r"C:\Users\b_gur\OneDrive\Documentos\order-processing-py\pdfs\type-a\ORV Suporte Rei - Imperio dos freios 12dez.pdf"
 
 def normalize_line(line):
     line = re.sub(r'(\d+\.?\d*)\s*R\$', r'R$ \1' , line)
@@ -13,8 +13,19 @@ def extract_pdf(path):
     data = {
         "Cliente": None,
         "Data": None,
+        "Fabricante": None,
         "Produtos": []
     }
+
+    if 'type-a' in file_path:
+        data['Fabricante'] = 'Suporte Rei'
+    elif 'type-b' in file_path:
+        data['Fabricante'] = 'Rei Auto Parts'
+    elif 'type-c' in file_path:
+        data['Fabricante'] = 'Della Rosa'
+    else:
+        data['Fabricante'] = 'Silpa'
+
     with open(file_path, "rb") as file:
         reader = PyPDF2.PdfReader(file)
         text = ""
@@ -28,31 +39,33 @@ def extract_pdf(path):
                 if match_cliente:
                     data["Cliente"] = match_cliente.group(1).strip()
                 if match_data:
-                    data["Data"] = match_data.group(0)  
-
+                    data["Data"] = match_data.group(0)
+     
 
     lines = text.split("\n")     
     for line in lines:
         line = normalize_line(line)
-        print(f"Processando linha: {line}")
         # Regex ajustado para capturar código, IPI, quantidade, e valores
         match_product = re.match(
-            r"(\S+)\s+(\d+)\s+R\$ ([\d.,]+)\s+R\$ ([\d.,]+)\s+R\$ ([\d.,]+)", 
+            r"(\S+)\s+(\d+\.\d+%)\s+(\d+)\s+(\d+)\s+R\$ ([\d.,]+)\s+R\$ ([\d.,]+)\s", 
             line
         )
         if match_product:
             produto = {
                 "Código": match_product.group(1),
-                "Qt": match_product.group(2),
-                "Valor s/Impostos": match_product.group(3),
-                "IPI": match_product.group(4)
+                "Qt": match_product.group(4),
+                "Valor s/Impostos": match_product.group(5),
+                "IPI": match_product.group(6)
             }
             data["Produtos"].append(produto)
-
     return data
 
-dados = extract_pdf(file_path)
-print(dados)
+Data = extract_pdf(file_path)
 
-df = pd.DataFrame(dados)
+df = pd.DataFrame(Data['Produtos'])
+df['Cliente'] = Data['Cliente']
+df['Data'] = Data['Data']
+df['Fabricante'] = Data['Fabricante']
+
+df = df[['Cliente', 'Data', 'Fabricante', 'Código', 'Qt', 'Valor s/Impostos', 'IPI']]
 print(df)
