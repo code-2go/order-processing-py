@@ -68,4 +68,8 @@ df['Data'] = Data['Data']
 df['Fabricante'] = Data['Fabricante']
 
 df = df[['Cliente', 'Data', 'Fabricante', 'Código', 'Qt', 'Valor s/Impostos', 'IPI']]
-print(df)
+
+# save_path = rf'C:\Users\b_gur\OneDrive\Documentos\order-processing-py\staging\{Data["Fabricante"]}-{Data["Cliente"]}-{Data["Data"].replace('/','-')}.csv'
+
+# df.to_csv(save_path, index=False, encoding='utf-8-sig')
+
